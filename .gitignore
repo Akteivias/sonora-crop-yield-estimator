@@ -1,0 +1,19 @@
+# Python / virtual environments
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Raw/staging downloads and locally generated model artifacts
+data/raw/
+model.bin
+model_metadata.json
+
+# Logs and OS files
+*.log
+.DS_Store
+
+AGENTS.md
