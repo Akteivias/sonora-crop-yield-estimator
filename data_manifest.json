@@ -1,0 +1,81 @@
+{
+  "generated_at_utc": "2026-11-17T00:33:32.801702+00:00",
+  "portal_url": "https://www.gob.mx/siap/acciones-y-programas/datos-abiertos-informacion-agricola",
+  "agricola_page_url": "https://nube.agricultura.gob.mx/datosAbiertos/Agricola.php",
+  "dictionary_url": "https://nube.agricultura.gob.mx/index.php?view=5D24F995-E734D711-1EA6F8D2-9D1387D7",
+  "filtering_rules": {
+    "Nomestado": "Sonora",
+    "Nomunidad": "Tonelada",
+    "Rendimiento": "notna() (excludes Cosechada == 0 undefined yield)"
+  },
+  "audit_counts": {
+    "sonora_total": 5782,
+    "dropped_non_tonelada": 4,
+    "dropped_nan_rendimiento": 143
+  },
+  "expected_year_counts": {
+    "2021": 952,
+    "2022": 1190,
+    "2023": 1321,
+    "2024": 1127,
+    "2025": 1045
+  },
+  "actual_year_counts": {
+    "2021": 952,
+    "2022": 1190,
+    "2023": 1321,
+    "2024": 1127,
+    "2025": 1045
+  },
+  "derived_dataset": {
+    "path": "data/sonora_crop_yield_2021_2025.csv",
+    "rows": 5635,
+    "columns": [
+      "Anio",
+      "Nommunicipio",
+      "Nomcicloproductivo",
+      "Nommodalidad",
+      "Nomcultivo",
+      "Sembrada",
+      "Rendimiento"
+    ],
+    "sha256": "fe906e45787ec5460a6b47e72b20b542b01eefdaeef72cfba35155d511d1649e"
+  },
+  "sources": [
+    {
+      "year": 2021,
+      "url": "https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC5A-EDF4AFAA&ANIO=2021",
+      "filename": "cierre_2021.csv",
+      "size_bytes": 4649328,
+      "sha256": "1f03b2f405c18ea00b63766f9732c7ed2f944b589e815ba6492c723e9b2cb65b"
+    },
+    {
+      "year": 2022,
+      "url": "https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC5A-EDF4AFAA&ANIO=2022",
+      "filename": "cierre_2022.csv",
+      "size_bytes": 6032570,
+      "sha256": "745f5189592446aa4348ffeba2780fd858f7071aef8dfd338414abbf2bc46162"
+    },
+    {
+      "year": 2023,
+      "url": "https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC5A-EDF4AFAA&ANIO=2023",
+      "filename": "cierre_2023.csv",
+      "size_bytes": 6678816,
+      "sha256": "30b3e90714d646821a6320645681b18e8e8fdbba8b88f59d4b5904b23acf4bf6"
+    },
+    {
+      "year": 2024,
+      "url": "https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC5A-EDF4AFAA&ANIO=2024",
+      "filename": "cierre_2024.csv",
+      "size_bytes": 5959152,
+      "sha256": "cffa7d638d74b4fc18966154c411ff207530d8be962abc9e311d2b08f3ffbb11"
+    },
+    {
+      "year": 2025,
+      "url": "https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC5A-EDF4AFAA&ANIO=2025",
+      "filename": "cierre_2025.csv",
+      "size_bytes": 5771963,
+      "sha256": "1f72e2b0cde3aeb1cac40c205054ce662d65c5f4655831b997bf66c626650243"
+    }
+  ]
+}

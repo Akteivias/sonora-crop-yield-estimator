@@ -1,0 +1,24 @@
+[project]
+name = "sonora-crop-yield-estimator"
+version = "0.1.0"
+description = "ML Zoomcamp 2026 Midterm Project: Sonora pre-harvest crop-yield estimator (SIAP 2021-2025)"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "pandas>=2.2,<4.0",
+    "pydantic>=2.7,<3.0",
+    "scikit-learn>=1.5,<2.0",
+    "uvicorn>=0.30,<1.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.27,<1.0",
+    "ipykernel>=6.29",
+    "nbconvert>=7.16",
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
