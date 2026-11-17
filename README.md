@@ -108,5 +108,5 @@ Test the containerized service with the same `curl -X POST http://localhost:9696
 
 ## Known Limitations & Cloud Deployment
 
-- **Inter-annual climate variation**: `2025` Test RMSE (`10.4956`) is higher than `2024` Val RMSE (`8.4841`) because year-to-year weather/drought conditions are not included in pre-harvest SIAP inputs.
+- **Inter-annual variation**: `2025` Test RMSE (`10.4956`) is higher than `2024` Val RMSE (`8.4841`), consistent with year-to-year variation—including weather or drought effects—not represented in the pre-harvest SIAP inputs.
 - **Cloud deployment**: Deferred until local Docker verification is complete; cloud deployment instructions and live endpoint/demo evidence will be added here before final submission.
