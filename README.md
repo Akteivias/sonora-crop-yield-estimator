@@ -12,51 +12,30 @@ Pre-harvest agricultural crop-yield estimator (`Rendimiento`, tonnes per hectare
 
 ## Dataset & Provenance
 
-- **Official source**: DGSIAP / SIAP *Cierre de la Producción Agrícola* municipal annual CSVs (2021–2025) from [Datos Abiertos Agrícola](https://nube.agricultura.gob.mx/datosAbiertos/Agricola.php) and official data dictionary (`Dicc 03 a 25`).
-- **Filtering rules** (`prepare_data.py`):
-  - `Nomestado == "Sonora"`
-  - `Nomunidad == "Tonelada"` (excludes 4 `Manojo` rows)
-  - `Rendimiento.notna()` (excludes 143 `Cosechada == 0` total-loss rows where `Rendimiento` is undefined)
-- **Derived dataset**: [`data/sonora_crop_yield_2021_2025.csv`](data/sonora_crop_yield_2021_2025.csv) (**5,635** rows: `2021`: 952, `2022`: 1,190, `2023`: 1,321, `2024`: 1,127, `2025`: 1,045) with source URLs, checksums, and audit counts recorded in [`data_manifest.json`](data_manifest.json).
-- **Excluded leakage / split columns**: `Volumenproduccion`, `Cosechada`, `Siniestrada`, `Preciomediorural`, `Valorproduccion`, and `Anio` (used strictly for temporal splitting).
+- **Source**: DGSIAP / SIAP *Cierre de la Producción Agrícola* municipal annual CSVs (2021–2025) from [Datos Abiertos Agrícola](https://nube.agricultura.gob.mx/datosAbiertos/Agricola.php).
+- **Reproducible data**: the committed derived dataset, [`data/sonora_crop_yield_2021_2025.csv`](data/sonora_crop_yield_2021_2025.csv), has 5,635 Sonora records. [`prepare_data.py`](prepare_data.py) applies the preparation rules; [`data_manifest.json`](data_manifest.json) records source URLs and checksums.
+- Only pre-harvest features are used; post-harvest production and value columns are excluded to prevent leakage.
 
 ## Modeling & Evaluation Design
 
-- **Temporal split**:
-  - Train: `2021–2023` (3,463 rows)
-  - Validation (model selection & tuning): `2024` (1,127 rows)
-  - Held-out final test (evaluated once in `train.py`): `2025` (1,045 rows)
-- **Notebook vs. `train.py`**: [`notebook.ipynb`](notebook.ipynb) performs EDA, `Cosechada == 0` and high-yield `Pepino` outlier audits, feature importance inspection, and `2024` validation selection. [`train.py`](train.py) is the canonical single `2025` evaluation path and refits the validation-selected pipeline on **`2021–2024` only** (never `2025`) to produce `model.bin` and `model_metadata.json`.
-- **Results** (`2024` Val / `2025` Test):
-  - `GlobalMean` (Val-2024): RMSE `19.8199`, MAE `12.5974`
-  - `PerCropMean` (Val-2024): RMSE `10.9703`, MAE `6.1305`
-  - `LinearRegression` baseline (Val-2024): RMSE `9.9028`, MAE `5.6620`
-  - **Selected**: `RandomForestRegressor(n_estimators=200, max_depth=None, min_samples_leaf=2)` → Val-2024 RMSE `8.4841` (MAE `3.6285`), Held-out Test-2025 RMSE `10.4956` (MAE `5.1430`).
-
-> **Security Note**: `model.bin` is generated locally by `train.py` using `pickle` (`protocol=5`) and is excluded from Git. Never replace or load `model.bin` from an untrusted source.
+- **Temporal split**: train `2021–2023`, tune/select on `2024`, and evaluate once on the held-out `2025` test set.
+- [`notebook.ipynb`](notebook.ipynb) contains data preparation, EDA, outlier and feature-importance analysis, and validation-based model selection. [`train.py`](train.py) refits the selected pipeline on `2021–2024` and writes `model.bin` and `model_metadata.json`.
+- **Models**: a `LinearRegression` baseline plus tuned `RandomForestRegressor` and `GradientBoostingRegressor` candidates. The selected random forest (`n_estimators=200`, `max_depth=None`, `min_samples_leaf=2`) achieved validation RMSE/MAE `8.4841` / `3.6285` and held-out test RMSE/MAE `10.4956` / `5.1430`.
 
 ## Environment Setup (`uv`)
 
 This project uses [`uv`](https://docs.astral.sh/uv/) with [`pyproject.toml`](pyproject.toml) and [`uv.lock`](uv.lock) for reproducible Python 3.11 dependency management.
 
 ```bash
-# 1. Install dependencies into .venv
 uv sync --locked
-
-# 2. Activate the virtual environment
 source .venv/bin/activate
 ```
 
 ## Reproducing Data, Training & Tests
 
 ```bash
-# Regenerate derived dataset & verify official SIAP checksums/schema
 python prepare_data.py
-
-# Train, run single 2025 held-out evaluation, and save model.bin + model_metadata.json
 python train.py
-
-# Run automated API tests
 pytest tests/test_api.py -v
 ```
 
@@ -92,12 +71,11 @@ Example response:
 }
 ```
 
-- **Supported `Sembrada` range**: `Sembrada` must be greater than `0` and at most `42,000` hectares (the observed maximum in the 2021–2024 refit data; inputs above `42,000` ha are rejected with `422` rather than extrapolated).
-- **Unseen categorical values**: `OneHotEncoder(handle_unknown="ignore")` encodes unseen `Nommunicipio`, `Nomcicloproductivo`, `Nommodalidad`, or `Nomcultivo` values as all-zero features and populates `input_warnings` in the response.
+- `Sembrada` must be greater than `0` and at most `42,000` hectares; invalid requests return `422`.
 
 ## Containerization (Docker)
 
-Ensure `model.bin` and `model_metadata.json` have been generated locally via `python train.py` before building the image:
+The image trains the model from the committed derived data during the build:
 
 ```bash
 docker build -t sonora-crop-yield:latest .
@@ -112,11 +90,9 @@ Test the containerized service with the same `curl -X POST http://localhost:9696
 
 ## Cloud Deployment (Render)
 
-- **Infrastructure**: `render.yaml` provisions a single public Docker web service (`sonora-crop-yield-estimator`, deployed at `sonora-crop-yield-estimator-cd8z`) on Render's Free plan (`oregon`).
-- **Reproducible build**: The Docker image trains `model.bin` and `model_metadata.json` from the committed derived dataset (`data/sonora_crop_yield_2021_2025.csv`) and `data_manifest.json` during image build (`RUN python train.py`).
-- **Port binding**: The container binds `0.0.0.0:${PORT:-9696}`, using Render's injected `PORT` (default `10000`) in production and `9696` locally when `PORT` is unset.
-- **Public Base URL**: `https://sonora-crop-yield-estimator-cd8z.onrender.com`
-- **Interactive API Docs**: `https://sonora-crop-yield-estimator-cd8z.onrender.com/docs`
+- [`render.yaml`](render.yaml) defines the public Docker web service; its image trains the model during the build from the committed derived data and manifest.
+- **Public Base URL**: <https://sonora-crop-yield-estimator-cd8z.onrender.com>
+- **Interactive API Docs**: [OpenAPI / Swagger UI](https://sonora-crop-yield-estimator-cd8z.onrender.com/docs)
 - **Prediction Endpoint**: `POST https://sonora-crop-yield-estimator-cd8z.onrender.com/predict`
 
 > **Note**: Render Free services spin down after 15 minutes of inactivity and may take about a minute to wake on the first request.
@@ -130,12 +106,7 @@ curl -sS -w "\nHTTP:%{http_code}\n" \
   -d '{"Nommunicipio":"Hermosillo","Nomcicloproductivo":"Otoño-Invierno","Nommodalidad":"Riego","Nomcultivo":"Trigo grano","Sembrada":1200.0}'
 ```
 
-Observed response:
-
-```json
-{"predicted_yield_ton_per_ha":6.9381,"input_warnings":[],"note":"Informational pre-harvest estimate based on historical SIAP Sonora records; not a financial, insurance, or production guarantee."}
-```
-`HTTP:200`
+The recorded request returned `HTTP:200`.
 
 Live terminal demo:
 
