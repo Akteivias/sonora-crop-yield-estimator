@@ -136,3 +136,7 @@ Observed response:
 {"predicted_yield_ton_per_ha":6.9381,"input_warnings":[],"note":"Informational pre-harvest estimate based on historical SIAP Sonora records; not a financial, insurance, or production guarantee."}
 ```
 `HTTP:200`
+
+Live terminal demo:
+
+![Live Render API prediction demo](docs/evidence/render-live-demo.gif)
