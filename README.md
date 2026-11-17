@@ -112,7 +112,27 @@ Test the containerized service with the same `curl -X POST http://localhost:9696
 
 ## Cloud Deployment (Render)
 
-- **Infrastructure**: `render.yaml` provisions a single public Docker web service (`sonora-crop-yield-estimator`) on Render's Free plan.
+- **Infrastructure**: `render.yaml` provisions a single public Docker web service (`sonora-crop-yield-estimator`, deployed at `sonora-crop-yield-estimator-cd8z`) on Render's Free plan (`oregon`).
 - **Reproducible build**: The Docker image trains `model.bin` and `model_metadata.json` from the committed derived dataset (`data/sonora_crop_yield_2021_2025.csv`) and `data_manifest.json` during image build (`RUN python train.py`).
 - **Port binding**: The container binds `0.0.0.0:${PORT:-9696}`, using Render's injected `PORT` (default `10000`) in production and `9696` locally when `PORT` is unset.
-- **Live evidence**: The public URL and verified live request/response evidence will be added here after deployment completes.
+- **Public Base URL**: `https://sonora-crop-yield-estimator-cd8z.onrender.com`
+- **Interactive API Docs**: `https://sonora-crop-yield-estimator-cd8z.onrender.com/docs`
+- **Prediction Endpoint**: `POST https://sonora-crop-yield-estimator-cd8z.onrender.com/predict`
+
+> **Note**: Render Free services spin down after 15 minutes of inactivity and may take about a minute to wake on the first request.
+
+Verified live request:
+
+```bash
+curl -sS -w "\nHTTP:%{http_code}\n" \
+  -X POST https://sonora-crop-yield-estimator-cd8z.onrender.com/predict \
+  -H "Content-Type: application/json" \
+  -d '{"Nommunicipio":"Hermosillo","Nomcicloproductivo":"Otoño-Invierno","Nommodalidad":"Riego","Nomcultivo":"Trigo grano","Sembrada":1200.0}'
+```
+
+Observed response:
+
+```json
+{"predicted_yield_ton_per_ha":6.9381,"input_warnings":[],"note":"Informational pre-harvest estimate based on historical SIAP Sonora records; not a financial, insurance, or production guarantee."}
+```
+`HTTP:200`
