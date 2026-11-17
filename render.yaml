@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: sonora-crop-yield-estimator
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .

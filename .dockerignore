@@ -9,3 +9,5 @@ data/raw/
 *.log
 .env
 .env.*
+model.bin
+model_metadata.json

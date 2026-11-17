@@ -10,9 +10,12 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev --no-install-project
 
-COPY predict.py model.bin model_metadata.json ./
+COPY data/ ./data/
+COPY data_manifest.json train.py predict.py ./
+RUN python train.py
+
 RUN useradd --create-home --no-log-init appuser
 
 USER appuser
-EXPOSE 9696
-ENTRYPOINT ["uvicorn", "predict:app", "--host", "0.0.0.0", "--port", "9696"]
+EXPOSE 10000
+CMD ["sh", "-c", "exec uvicorn predict:app --host 0.0.0.0 --port ${PORT:-9696}"]

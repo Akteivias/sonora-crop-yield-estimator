@@ -106,7 +106,13 @@ docker run --rm -p 9696:9696 sonora-crop-yield:latest
 
 Test the containerized service with the same `curl -X POST http://localhost:9696/predict` command above.
 
-## Known Limitations & Cloud Deployment
+## Known Limitations
 
 - **Inter-annual variation**: `2025` Test RMSE (`10.4956`) is higher than `2024` Val RMSE (`8.4841`), consistent with year-to-year variation—including weather or drought effects—not represented in the pre-harvest SIAP inputs.
-- **Cloud deployment**: Deferred until local Docker verification is complete; cloud deployment instructions and live endpoint/demo evidence will be added here before final submission.
+
+## Cloud Deployment (Render)
+
+- **Infrastructure**: `render.yaml` provisions a single public Docker web service (`sonora-crop-yield-estimator`) on Render's Free plan.
+- **Reproducible build**: The Docker image trains `model.bin` and `model_metadata.json` from the committed derived dataset (`data/sonora_crop_yield_2021_2025.csv`) and `data_manifest.json` during image build (`RUN python train.py`).
+- **Port binding**: The container binds `0.0.0.0:${PORT:-9696}`, using Render's injected `PORT` (default `10000`) in production and `9696` locally when `PORT` is unset.
+- **Live evidence**: The public URL and verified live request/response evidence will be added here after deployment completes.
